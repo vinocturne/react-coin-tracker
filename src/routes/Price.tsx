@@ -87,7 +87,15 @@ function Price() {
                 </PriceItem>
                 <PriceItem>
                     <ItemTitle>Volume Change 24 Hours: </ItemTitle>
-                    <ItemValue>$ {priceInfo.volume_24h_change_24h}</ItemValue>
+                    <ItemValue
+                        isRedFlg={
+                            priceInfo.volume_24h_change_24h < 0 ? true : false
+                        }
+                    >
+                        {priceInfo.volume_24h_change_24h < 0
+                            ? `- $${Math.abs(priceInfo.volume_24h_change_24h)}`
+                            : `$${priceInfo.volume_24h_change_24h}`}
+                    </ItemValue>
                 </PriceItem>
                 <PriceItem>
                     <ItemTitle>Maximum Price: </ItemTitle>
