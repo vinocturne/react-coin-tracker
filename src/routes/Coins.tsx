@@ -65,8 +65,6 @@ function Coins() {
     const [coins, setCoins] = useState<CoinInterface[]>([]);
     const [loading, setLoading] = useState(true);
     useEffect(() => {
-        // (()=>{})()를 통한 익명함수 바로 실행. 따로 메소드를 만드는 것이 더 정렬되어보여 좋지만
-        // 이런 방법을 나중에 사용할 때도 있기 때문에 사용.
         (async () => {
             const response = await fetch(
                 "https://api.coinpaprika.com/v1/coins"

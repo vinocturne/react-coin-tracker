@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import styled from "styled-components";
 
@@ -25,9 +25,6 @@ const Loader = styled.span`
     display: block;
 `;
 
-//Link의 state를 사용하여 데이터를 넘겨줄 때 interface는
-//state를 한 번 감싸도록 만들어주고
-//useLocation()으로 불러올 때 'as 인터페이스명'으로
 interface RouteState {
     state: {
         name: string;
@@ -37,16 +34,29 @@ interface RouteState {
 function Coin() {
     const { coinId } = useParams();
     const [loading, setLoading] = useState(true);
-    //단 Link의 state를 통해 들어오는 데이터의 경우,
-    //해당 주소로 바로 들어올 때에는 그 값을 받아오지 못한다.
-    //현재 코드의 경우, 주소로 바로 들어올 경우 title에도 Loading만 뜨게된다.
     const { state } = useLocation() as RouteState;
+    const [info, setInfo] = useState({});
+    const [priceInfo, setPriceInfo] = useState({});
+    useEffect(() => {
+        (async () => {
+            const infoData = await (
+                await fetch(`https://api.coinpaprika.com/v1/coins/${coinId}`)
+            ).json();
+            const priceData = await (
+                await fetch(`https://api.coinpaprika.com/v1/tickers/${coinId}`)
+            ).json();
+            setInfo(infoData);
+            setPriceInfo(priceData);
+            setLoading(false);
+        })();
+    }, []);
+
     return (
         <Container>
             <Header>
                 <Title>{state?.name || "Loading..."}</Title>
             </Header>
-            {loading ? <Loader>Loading...</Loader> : null}
+            {loading ? <Loader>Loading...</Loader> : <span></span>}
         </Container>
     );
 }
