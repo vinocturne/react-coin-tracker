@@ -236,7 +236,11 @@ function Coin() {
                         </Tab>
                     </Tabs>
                     <Outlet
-                        context={chartMatch ? { coinId: coinId } : null}
+                        context={
+                            chartMatch
+                                ? { coinId: coinId }
+                                : tickersData?.quotes.USD
+                        }
                     ></Outlet>
                 </>
             )}
