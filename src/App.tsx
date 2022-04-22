@@ -1,7 +1,8 @@
 import Router from "./Router";
 import { createGlobalStyle } from "styled-components";
+import { ReactQueryDevtools } from "react-query/devtools";
 
-const GlobalStyle = createGlobalStyle `
+const GlobalStyle = createGlobalStyle`
   html, body, div, span, applet, object, iframe,
   h1, h2, h3, h4, h5, h6, p, blockquote, pre,
   a, abbr, acronym, address, big, cite, code,
@@ -54,24 +55,23 @@ const GlobalStyle = createGlobalStyle `
   }
   body {
     font-family: 'Source Sans Pro', sans-serif;
-    background-color: ${props => props.theme.bgColor};
-    color: ${props => props.theme.textColor}
+    background-color: ${(props) => props.theme.bgColor};
+    color: ${(props) => props.theme.textColor}
   }
   a {
     text-decoration: none;
     color: inherit;
   }
-`
-
+`;
 
 function App() {
-  
-  return (
-    <>
-      <GlobalStyle />
-      <Router />
-    </>
-  );
+    return (
+        <>
+            <GlobalStyle />
+            <Router />
+            <ReactQueryDevtools initialIsOpen={true} />
+        </>
+    );
 }
 
 export default App;

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useQuery } from "react-query";
 import {
     Link,
     Outlet,
@@ -7,6 +7,7 @@ import {
     useMatch,
 } from "react-router-dom";
 import styled from "styled-components";
+import { fetchCoinInfo, fetchCoinTickers } from "../api";
 
 const Container = styled.div`
     padding: 0px 20px;
@@ -140,25 +141,39 @@ interface PriceData {
 
 function Coin() {
     const { coinId } = useParams();
-    const [loading, setLoading] = useState(true);
     const { state } = useLocation() as RouteState;
-    const [info, setInfo] = useState<InfoData>();
-    const [priceInfo, setPriceInfo] = useState<PriceData>();
     const priceMatch = useMatch("/:coinId/price");
     const chartMatch = useMatch("/:coinId/chart");
-    useEffect(() => {
-        (async () => {
-            const infoData = await (
-                await fetch(`https://api.coinpaprika.com/v1/coins/${coinId}`)
-            ).json();
-            const priceData = await (
-                await fetch(`https://api.coinpaprika.com/v1/tickers/${coinId}`)
-            ).json();
-            setInfo(infoData);
-            setPriceInfo(priceData);
-            setLoading(false);
-        })();
-    }, [coinId]);
+    //!는 확장 할당 어센셜로 값이 무조건 할당되어있다고 컴파일러에게 전달하여,
+    //값이 없더라도 변수를 사용할 수 있도록 함.
+    //useQuery를 여러개 사용할 경우 isLoading 및 data, useQuery의 첫 번째 인자인 쿼리키가 중복이 될 수 있다.
+    //이럴 경우 isLoading: 사용할 변수명, 이런식으로 작성 가능하고
+    //파라미터의 경우 쿼리키가 배열로 받아들이기 때문에 ["해당 data 이름", coinId]의 형태로 쿼리키 중복을 피할 수 있다.
+    const { isLoading: infoLoading, data: infoData } = useQuery<InfoData>(
+        ["info", coinId],
+        () => fetchCoinInfo(coinId!)
+    );
+    const { isLoading: tickersLoading, data: tickersData } = useQuery<
+        PriceData
+    >(["tickers", coinId], () => fetchCoinTickers(coinId!));
+
+    // const [loading, setLoading] = useState(true);
+    // const [info, setInfo] = useState<InfoData>();
+    // const [priceInfo, setPriceInfo] = useState<PriceData>();
+    // useEffect(() => {
+    //     (async () => {
+    //         const infoData = await (
+    //             await fetch(`https://api.coinpaprika.com/v1/coins/${coinId}`)
+    //         ).json();
+    //         const priceData = await (
+    //             await fetch(`https://api.coinpaprika.com/v1/tickers/${coinId}`)
+    //         ).json();
+    //         setInfo(infoData);
+    //         setPriceInfo(priceData);
+    //         setLoading(false);
+    //     })();
+    // }, [coinId]);
+    const loading = infoLoading || tickersLoading;
 
     return (
         <Container>
@@ -168,7 +183,7 @@ function Coin() {
                         ? state.name
                         : loading
                         ? "Loading..."
-                        : info?.name}
+                        : infoData?.name}
                 </Title>
             </Header>
             {loading ? (
@@ -178,26 +193,26 @@ function Coin() {
                     <Overview>
                         <OverviewItem>
                             <span>Rank:</span>
-                            <span>{info?.rank}</span>
+                            <span>{infoData?.rank}</span>
                         </OverviewItem>
                         <OverviewItem>
                             <span>Symbol:</span>
-                            <span>${info?.symbol}</span>
+                            <span>${infoData?.symbol}</span>
                         </OverviewItem>
                         <OverviewItem>
                             <span>Open Source:</span>
-                            <span>{info?.open_source ? "Yes" : "No"}</span>
+                            <span>{infoData?.open_source ? "Yes" : "No"}</span>
                         </OverviewItem>
                     </Overview>
-                    <Description>{info?.description}</Description>
+                    <Description>{infoData?.description}</Description>
                     <Overview>
                         <OverviewItem>
                             <span>Total Suply:</span>
-                            <span>{priceInfo?.total_supply}</span>
+                            <span>{tickersData?.total_supply}</span>
                         </OverviewItem>
                         <OverviewItem>
                             <span>Max Supply:</span>
-                            <span>{priceInfo?.max_supply}</span>
+                            <span>{tickersData?.max_supply}</span>
                         </OverviewItem>
                     </Overview>
                     <Tabs>
