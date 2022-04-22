@@ -1,4 +1,5 @@
 import { useQuery } from "react-query";
+import { Helmet } from "react-helmet";
 import {
     Link,
     Outlet,
@@ -8,6 +9,7 @@ import {
 } from "react-router-dom";
 import styled from "styled-components";
 import { fetchCoinInfo, fetchCoinTickers } from "../api";
+import leftArrow from "../assets/images/left-arrow.png";
 
 const Container = styled.div`
     padding: 0px 20px;
@@ -20,6 +22,20 @@ const Header = styled.header`
     display: flex;
     justify-content: center;
     align-items: center;
+    position: relative;
+`;
+
+const PrevPageBtn = styled.div`
+    position: absolute;
+    left: 0;
+    img {
+        width: 20px;
+        cursor: pointer;
+        &:hover {
+            transition: 0.3s;
+            filter: brightness(0) invert(1);
+        }
+    }
 `;
 
 const Title = styled.h1`
@@ -144,40 +160,34 @@ function Coin() {
     const { state } = useLocation() as RouteState;
     const priceMatch = useMatch("/:coinId/price");
     const chartMatch = useMatch("/:coinId/chart");
-    //!는 확장 할당 어센셜로 값이 무조건 할당되어있다고 컴파일러에게 전달하여,
-    //값이 없더라도 변수를 사용할 수 있도록 함.
-    //useQuery를 여러개 사용할 경우 isLoading 및 data, useQuery의 첫 번째 인자인 쿼리키가 중복이 될 수 있다.
-    //이럴 경우 isLoading: 사용할 변수명, 이런식으로 작성 가능하고
-    //파라미터의 경우 쿼리키가 배열로 받아들이기 때문에 ["해당 data 이름", coinId]의 형태로 쿼리키 중복을 피할 수 있다.
     const { isLoading: infoLoading, data: infoData } = useQuery<InfoData>(
         ["info", coinId],
         () => fetchCoinInfo(coinId!)
     );
     const { isLoading: tickersLoading, data: tickersData } = useQuery<
         PriceData
-    >(["tickers", coinId], () => fetchCoinTickers(coinId!));
-
-    // const [loading, setLoading] = useState(true);
-    // const [info, setInfo] = useState<InfoData>();
-    // const [priceInfo, setPriceInfo] = useState<PriceData>();
-    // useEffect(() => {
-    //     (async () => {
-    //         const infoData = await (
-    //             await fetch(`https://api.coinpaprika.com/v1/coins/${coinId}`)
-    //         ).json();
-    //         const priceData = await (
-    //             await fetch(`https://api.coinpaprika.com/v1/tickers/${coinId}`)
-    //         ).json();
-    //         setInfo(infoData);
-    //         setPriceInfo(priceData);
-    //         setLoading(false);
-    //     })();
-    // }, [coinId]);
+    >(["tickers", coinId], () => fetchCoinTickers(coinId!), {
+        refetchInterval: 5000,
+    });
     const loading = infoLoading || tickersLoading;
 
     return (
         <Container>
+            <Helmet>
+                <title>
+                    {state?.name
+                        ? state.name
+                        : loading
+                        ? "Loading..."
+                        : infoData?.name}
+                </title>
+            </Helmet>
             <Header>
+                <PrevPageBtn>
+                    <Link to={`/`}>
+                        <img src={leftArrow} alt="prev" />
+                    </Link>
+                </PrevPageBtn>
                 <Title>
                     {state?.name
                         ? state.name
@@ -200,8 +210,10 @@ function Coin() {
                             <span>${infoData?.symbol}</span>
                         </OverviewItem>
                         <OverviewItem>
-                            <span>Open Source:</span>
-                            <span>{infoData?.open_source ? "Yes" : "No"}</span>
+                            <span>Price:</span>
+                            <span>
+                                {tickersData?.quotes.USD.price.toFixed(3)}
+                            </span>
                         </OverviewItem>
                     </Overview>
                     <Description>{infoData?.description}</Description>
@@ -223,7 +235,9 @@ function Coin() {
                             <Link to={`/${coinId}/price`}>Price</Link>
                         </Tab>
                     </Tabs>
-                    <Outlet></Outlet>
+                    <Outlet
+                        context={chartMatch ? { coinId: coinId } : null}
+                    ></Outlet>
                 </>
             )}
         </Container>
