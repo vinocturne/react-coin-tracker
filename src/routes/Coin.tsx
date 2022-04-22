@@ -1,17 +1,64 @@
-import { useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useLocation, useParams } from "react-router-dom";
+import styled from "styled-components";
 
-interface RouteParams {
-    coinId: string;
+const Container = styled.div`
+    padding: 0px 20px;
+    max-width: 480px;
+    margin: 0 auto;
+`;
+
+const Header = styled.header`
+    height: 10vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+`;
+
+const Title = styled.h1`
+    color: ${(props) => props.theme.accentColor};
+    font-size: 48px;
+`;
+
+const Loader = styled.span`
+    text-align: center;
+    display: block;
+`;
+
+interface RouteState {
+    state: {
+        name: string;
+    };
 }
 
 function Coin() {
-    // 인터페이스를 설정하지 않고 아래와같이 설정 가능
-    // const {coinId} = useParams<{coinId:string}>();
-    // 인터페이스를 설정하면 아래와 같이 사용하면 되나, react-router-dom v6부터는 타입값이 없어도 가능
-    // const {coinId} = useParams<RouteParams>();
-    const {coinId} = useParams();
+    const { coinId } = useParams();
+    const [loading, setLoading] = useState(true);
+    const { state } = useLocation() as RouteState;
+    const [info, setInfo] = useState({});
+    const [priceInfo, setPriceInfo] = useState({});
+    useEffect(() => {
+        (async () => {
+            const infoData = await (
+                await fetch(`https://api.coinpaprika.com/v1/coins/${coinId}`)
+            ).json();
+            const priceData = await (
+                await fetch(`https://api.coinpaprika.com/v1/tickers/${coinId}`)
+            ).json();
+            setInfo(infoData);
+            setPriceInfo(priceData);
+            setLoading(false);
+        })();
+    }, []);
 
-    return <h1>Coin: {coinId}</h1>;
+    return (
+        <Container>
+            <Header>
+                <Title>{state?.name || "Loading..."}</Title>
+            </Header>
+            {loading ? <Loader>Loading...</Loader> : <span></span>}
+        </Container>
+    );
 }
 
 export default Coin;
