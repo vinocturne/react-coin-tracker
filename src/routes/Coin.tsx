@@ -1,5 +1,11 @@
 import { useEffect, useState } from "react";
-import { useLocation, useParams } from "react-router-dom";
+import {
+    Link,
+    Outlet,
+    useLocation,
+    useParams,
+    useMatch,
+} from "react-router-dom";
 import styled from "styled-components";
 
 const Container = styled.div`
@@ -18,11 +24,56 @@ const Header = styled.header`
 const Title = styled.h1`
     color: ${(props) => props.theme.accentColor};
     font-size: 48px;
+    align-items: center;
+`;
+
+const Overview = styled.div`
+    display: flex;
+    justify-content: space-between;
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 10px 20px;
+    border-radius: 10px;
+`;
+const OverviewItem = styled.div`
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    span:first-child {
+        font-size: 10px;
+        font-weight: 400;
+        text-transform: uppercase;
+        margin-bottom: 5px;
+    }
+`;
+const Description = styled.p`
+    margin: 20px 0px;
 `;
 
 const Loader = styled.span`
     text-align: center;
     display: block;
+`;
+
+const Tabs = styled.div`
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    margin: 25px 0px;
+    gap: 10px;
+`;
+
+const Tab = styled.span<{ isActive: boolean }>`
+    text-align: center;
+    text-transform: uppercase;
+    font-size: 12px;
+    font-weight: 400;
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 7px 0px;
+    border-radius: 10px;
+    color: ${(props) =>
+        props.isActive ? props.theme.accentColor : props.theme.textColor};
+    a {
+        display: block;
+    }
 `;
 
 interface RouteState {
@@ -31,17 +82,7 @@ interface RouteState {
     };
 }
 
-// interface ITag {
-//     coin_counter: number;
-//     ico_counter: number;
-//     id: string;
-//     name: string;
-// }
-//interface명 앞에 대문자 I를 적음으로써 interface를 명시하기도 한다.
 interface InfoData {
-    // 객체배열로 이루어진 타입의 내부 객체 인터페이스를 정의하고 싶으면
-    // 따로 해당 인터페이스를 작성한 뒤, 인터페이스명[]를 통해 지정할 수 있다.
-    // tags: ITag[];
     id: string;
     name: string;
     symbol: string;
@@ -101,11 +142,10 @@ function Coin() {
     const { coinId } = useParams();
     const [loading, setLoading] = useState(true);
     const { state } = useLocation() as RouteState;
-    // 기존에 인터페이스를 적용하지 않았을 때에는 해당 타입을 모르므로 {}를 사용하여 알려줬지만
-    // 인터페이스를 적용한 뒤에는 타입들을 모두 알기 때문에 비워두도록 한다.
-    // const [info, setInfo] = useState({});
     const [info, setInfo] = useState<InfoData>();
     const [priceInfo, setPriceInfo] = useState<PriceData>();
+    const priceMatch = useMatch("/:coinId/price");
+    const chartMatch = useMatch("/:coinId/chart");
     useEffect(() => {
         (async () => {
             const infoData = await (
@@ -118,23 +158,59 @@ function Coin() {
             setPriceInfo(priceData);
             setLoading(false);
         })();
-    }, []);
+    }, [coinId]);
 
     return (
         <Container>
             <Header>
-                <Title>{state?.name || "Loading..."}</Title>
+                <Title>
+                    {state?.name
+                        ? state.name
+                        : loading
+                        ? "Loading..."
+                        : info?.name}
+                </Title>
             </Header>
             {loading ? (
                 <Loader>Loading...</Loader>
             ) : (
-                priceInfo?.quotes.USD.ath_price
+                <>
+                    <Overview>
+                        <OverviewItem>
+                            <span>Rank:</span>
+                            <span>{info?.rank}</span>
+                        </OverviewItem>
+                        <OverviewItem>
+                            <span>Symbol:</span>
+                            <span>${info?.symbol}</span>
+                        </OverviewItem>
+                        <OverviewItem>
+                            <span>Open Source:</span>
+                            <span>{info?.open_source ? "Yes" : "No"}</span>
+                        </OverviewItem>
+                    </Overview>
+                    <Description>{info?.description}</Description>
+                    <Overview>
+                        <OverviewItem>
+                            <span>Total Suply:</span>
+                            <span>{priceInfo?.total_supply}</span>
+                        </OverviewItem>
+                        <OverviewItem>
+                            <span>Max Supply:</span>
+                            <span>{priceInfo?.max_supply}</span>
+                        </OverviewItem>
+                    </Overview>
+                    <Tabs>
+                        <Tab isActive={chartMatch !== null}>
+                            <Link to={`/${coinId}/chart`}>Chart</Link>
+                        </Tab>
+                        <Tab isActive={priceMatch !== null}>
+                            <Link to={`/${coinId}/price`}>Price</Link>
+                        </Tab>
+                    </Tabs>
+                    <Outlet></Outlet>
+                </>
             )}
-            {/* 
-                priceInfo에 ?를 넣는 이유
-                priceInfo자체가 api를 통해 넘어오기 때문에 무조건적으로 값이 들어오지는 않기 때문에
-                이를 알려주기 위해 ?를 표시.
-             */}
         </Container>
     );
 }
