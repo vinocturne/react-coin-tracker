@@ -1,4 +1,6 @@
 import { useQuery } from "react-query";
+import { useRecoilValue, useSetRecoilState } from "recoil";
+import { isDarkAtom } from "../atoms";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { fetchCoins } from "../api";
@@ -15,12 +17,30 @@ const Header = styled.header`
     display: flex;
     justify-content: center;
     align-items: center;
+    position: relative;
+`;
+
+const ThemeButton = styled.div`
+    position: absolute;
+    left: 0;
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-radius: 50px;
+    color: ${(props) => props.theme.textColor};
+    transition: color 0.2s ease-in;
+    height: 50px;
+    background-color: ${(props) => props.theme.listColor};
+    cursor: pointer;
+    &:hover {
+        color: ${(props) => props.theme.accentColor};
+    }
 `;
 
 const CoinsList = styled.ul``;
 
 const Coin = styled.li`
-    background-color: white;
+    background-color: ${(props) => props.theme.listColor};
     color: ${(props) => props.theme.bgColor};
     border-radius: 15px;
     margin-bottom: 10px;
@@ -71,13 +91,18 @@ function Coins() {
     //이전에 사용한 수많은 줄의 코드들이 한 줄로 끝나게 된다.
     //또한 다른 페이지로 이동했다가 돌아왔을 때 저장해둔 캐시를 가지고 작동하기 때문에 로딩이 없다.
     const { isLoading, data } = useQuery<ICoin[]>("allCoins", fetchCoins);
-
+    const isDark = useRecoilValue(isDarkAtom);
+    const isDarkSet = useSetRecoilState(isDarkAtom);
+    const toggleDark = () => isDarkSet((current) => !current);
     return (
         <Container>
             <Helmet>
                 <title>코인</title>
             </Helmet>
             <Header>
+                <ThemeButton onClick={toggleDark}>
+                    {isDark ? "Light Mode" : "Dark Mode"}
+                </ThemeButton>
                 <Title>Coins</Title>
             </Header>
             {isLoading ? (

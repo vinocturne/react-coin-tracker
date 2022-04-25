@@ -1,8 +1,9 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
-import { ThemeProvider } from "styled-components";
-import { theme } from "./theme";
+import { RecoilRoot } from "recoil";
+// import { ThemeProvider } from "styled-components";
+// import { LightTheme, DarkTheme } from "./theme";
 import { QueryClient, QueryClientProvider } from "react-query";
 
 //리액트 쿼리를 선언하고, QueryClientProvider를 통해 앱을 감싸준다.
@@ -14,10 +15,12 @@ const root = ReactDOM.createRoot(
 );
 root.render(
     <React.StrictMode>
-        <QueryClientProvider client={queryClient}>
-            <ThemeProvider theme={theme}>
+        <RecoilRoot>
+            <QueryClientProvider client={queryClient}>
+                {/* <ThemeProvider theme={LightTheme}> */}
                 <App />
-            </ThemeProvider>
-        </QueryClientProvider>
+                {/* </ThemeProvider> */}
+            </QueryClientProvider>
+        </RecoilRoot>
     </React.StrictMode>
 );

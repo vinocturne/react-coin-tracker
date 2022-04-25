@@ -32,13 +32,13 @@ const PriceItem = styled.div`
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: ${(props) => props.theme.listColor};
     border-radius: 30px;
     padding: 10px 15px;
 `;
 const ItemTitle = styled.span`
     font-size: 14px;
-    color: grey;
+    color: ${(props) => props.theme.textColor};
 `;
 
 const ItemValue = styled.span<{ isRedFlg?: boolean }>`
